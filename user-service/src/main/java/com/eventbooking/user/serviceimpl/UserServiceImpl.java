@@ -1,5 +1,9 @@
 package com.eventbooking.user.serviceimpl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.eventbooking.user.dto.RegisterUserRequest;
 import com.eventbooking.user.dto.UserResponse;
 import com.eventbooking.user.entity.Role;
@@ -8,30 +12,34 @@ import com.eventbooking.user.exception.ResourceAlreadyExistsException;
 import com.eventbooking.user.exception.ResourceNotFoundException;
 import com.eventbooking.user.repository.UserRepository;
 import com.eventbooking.user.service.UserService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UserServiceImpl implements UserService {
-
+public class UserServiceImpl implements UserService 
+{
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserResponse registerUser(RegisterUserRequest request) {
-
-        if (userRepository.existsByEmail(request.email())) {
+    public UserResponse registerUser(RegisterUserRequest request) 
+    {
+        if (userRepository.existsByEmail(request.email())) 
+        {
             throw new ResourceAlreadyExistsException(
                     "User already exists with email: " + request.email()
             );
         }
 
+        String encodedPassword =
+                passwordEncoder.encode(request.password());
+
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())
-                .password(request.password())
+                .password(encodedPassword)
                 .role(Role.USER)
                 .active(true)
                 .build();
@@ -43,8 +51,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Long id) {
-
+    public UserResponse getUserById(Long id) 
+    {
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -57,8 +65,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserByEmail(String email) {
-
+    public UserResponse getUserByEmail(String email) 
+    {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -69,8 +77,8 @@ public class UserServiceImpl implements UserService {
         return mapToResponse(user);
     }
 
-    private UserResponse mapToResponse(User user) {
-
+    private UserResponse mapToResponse(User user) 
+    {
         return new UserResponse(
                 user.getId(),
                 user.getName(),
