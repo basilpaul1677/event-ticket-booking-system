@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,5 +95,28 @@ public class EventController
         return ResponseEntity.ok(
                 eventService.getEventsByCategory(category)
         );
+    }
+
+    @GetMapping("/admin/events/pending")
+    public ResponseEntity<List<EventResponse>> getPendingEvents() 
+    {
+    return ResponseEntity.ok(
+            eventService.getPendingEvents());
+    }
+
+    @PutMapping("/admin/events/{id}/approve")
+    public ResponseEntity<EventResponse> approveEvent(
+        @PathVariable Long id) 
+    {
+        return ResponseEntity.ok(
+            eventService.approveEvent(id));
+    }
+
+    @PutMapping("/admin/events/{id}/reject")
+    public ResponseEntity<EventResponse> rejectEvent(
+    @PathVariable Long id) 
+    {
+        return ResponseEntity.ok(
+            eventService.rejectEvent(id));
     }
 }

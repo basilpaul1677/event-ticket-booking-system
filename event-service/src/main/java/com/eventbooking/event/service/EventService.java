@@ -15,4 +15,7 @@ public interface EventService
     List<EventResponse> searchEvents(String keyword);
     List<EventResponse> getEventsByCity(String city);
     List<EventResponse> getEventsByCategory(String category);
+    List<EventResponse> getPendingEvents();
+    EventResponse approveEvent(Long id);
+    EventResponse rejectEvent(Long id);
 }

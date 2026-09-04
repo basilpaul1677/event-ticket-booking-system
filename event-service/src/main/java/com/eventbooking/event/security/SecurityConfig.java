@@ -13,38 +13,53 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig 
 {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter) 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) 
     {
         this.jwtAuthenticationFilter =
                 jwtAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception 
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception 
     {
-        http
-                .csrf(csrf -> csrf.disable())
+        http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // ==========================================
+                        // PUBLIC ACTUATOR ENDPOINTS
+                        // ==========================================
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/info"
                         ).permitAll()
+                        // ==========================================
+                        // PUBLIC EVENT ENDPOINTS
+                        // =========================================
                         .requestMatchers(
                                 "/api/v1/events/published",
                                 "/api/v1/events/search",
                                 "/api/v1/events/city/**",
                                 "/api/v1/events/category/**"
                         ).permitAll()
+                        // ==========================================
+                        // ADMIN ENDPOINTS
+                        // ==========================================
+                        .requestMatchers(
+                                "/api/v1/admin/**"
+                        ).hasRole("ADMIN")
+                        // ==========================================
+                        // EVENT CENTER - CREATE EVENT
+                        // ==========================================
                         .requestMatchers(
                                 "/api/v1/events"
                         ).hasRole("EVENT_CENTER")
+                        // ==========================================
+                        // ALL OTHER REQUESTS
+                        // ==========================================
                         .anyRequest()
                         .authenticated()
                 )

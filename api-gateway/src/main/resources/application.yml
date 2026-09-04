@@ -12,6 +12,7 @@ spring:
 
         # ==============================
         # USER SERVICE
+        # Port: 8081
         # ==============================
         - id: user-service
           uri: http://localhost:8081
@@ -19,17 +20,37 @@ spring:
             - Path=/api/v1/users/**,/api/v1/auth/**
 
         # ==============================
-        # EVENT SERVICE
+        # ADMIN - EVENT CENTER
+        # User Service
+        # Port: 8081
         # ==============================
-        # Your event-service is currently
-        # running on port 8084.
+        - id: admin-event-center-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/admin/event-centers/**
+
+        # ==============================
+        # EVENT SERVICE
+        # Port: 8082
+        # ==============================
         - id: event-service
-          uri: http://localhost:8084
+          uri: http://localhost:8082
           predicates:
             - Path=/api/v1/events/**,/api/v1/event-centers/**
 
         # ==============================
+        # ADMIN - EVENTS
+        # Event Service
+        # Port: 8082
+        # ==============================
+        - id: admin-event-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/admin/events/**
+
+        # ==============================
         # BOOKING SERVICE
+        # Port: 8083
         # ==============================
         - id: booking-service
           uri: http://localhost:8083
@@ -38,11 +59,10 @@ spring:
 
         # ==============================
         # NOTIFICATION SERVICE
+        # Port: 8084
         # ==============================
-        # Change 8085 if your notification-service
-        # uses a different port.
         - id: notification-service
-          uri: http://localhost:8085
+          uri: http://localhost:8084
           predicates:
             - Path=/api/v1/notifications/**
 

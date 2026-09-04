@@ -1,6 +1,4 @@
-package com.eventbooking.user.dto;
-
-import com.eventbooking.user.entity.EventCenterStatus;
+package com.eventbooking.event.dto;
 
 public record EventCenterResponse(
         Long id,
@@ -14,7 +12,7 @@ public record EventCenterResponse(
         String country,
         String contactNumber,
         String description,
-        EventCenterStatus status,
+        String status,
         String rejectionReason
 ) 
 {

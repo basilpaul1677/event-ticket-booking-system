@@ -29,6 +29,19 @@ public class GlobalExceptionHandler
         return buildResponse(HttpStatus.CONFLICT,ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException exception) 
+    {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(Map.of(
+                    "success", false,
+                    "status", 400,
+                    "error", "Bad Request",
+                    "message", exception.getMessage()
+            ));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) 
     {
