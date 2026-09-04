@@ -13,15 +13,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig 
 {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) 
-    {
-        this.jwtAuthenticationFilter =
-                jwtAuthenticationFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter) 
+{
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception 
-    {
+        {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
@@ -29,39 +30,26 @@ public class SecurityConfig
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // ==========================================
-                        // PUBLIC ACTUATOR ENDPOINTS
-                        // ==========================================
                         .requestMatchers(
                                 "/actuator/health",
                                 "/actuator/info"
                         ).permitAll()
-                        // ==========================================
-                        // PUBLIC EVENT ENDPOINTS
-                        // =========================================
                         .requestMatchers(
                                 "/api/v1/events/published",
                                 "/api/v1/events/search",
                                 "/api/v1/events/city/**",
-                                "/api/v1/events/category/**"
+                                "/api/v1/events/category/**",
+                                "/api/v1/events/*/seats",
+                                "/api/v1/events/*/seats/available",
+                                "/api/v1/events/*/seats/available/count"
                         ).permitAll()
-                        // ==========================================
-                        // ADMIN ENDPOINTS
-                        // ==========================================
                         .requestMatchers(
                                 "/api/v1/admin/**"
                         ).hasRole("ADMIN")
-                        // ==========================================
-                        // EVENT CENTER - CREATE EVENT
-                        // ==========================================
                         .requestMatchers(
                                 "/api/v1/events"
                         ).hasRole("EVENT_CENTER")
-                        // ==========================================
-                        // ALL OTHER REQUESTS
-                        // ==========================================
-                        .anyRequest()
-                        .authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
