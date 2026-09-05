@@ -32,3 +32,6 @@ jwt:
 
 event-service:
   url: ${EVENT_SERVICE_URL:http://localhost:8082}
+
+booking-service:
+  internal-authorization: ${BOOKING_INTERNAL_AUTHORIZATION:}

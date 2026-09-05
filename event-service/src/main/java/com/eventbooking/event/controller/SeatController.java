@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eventbooking.event.dto.ConfirmSeatsRequest;
 import com.eventbooking.event.dto.HoldSeatsRequest;
 import com.eventbooking.event.dto.HoldSeatsResponse;
 import com.eventbooking.event.dto.SeatResponse;
@@ -36,7 +37,9 @@ public class SeatController
             @PathVariable Long eventId) 
     {
         return ResponseEntity.ok(
-                seatService.getSeatsByEvent(eventId)
+                seatService.getSeatsByEvent(
+                        eventId
+                )
         );
     }
 
@@ -45,7 +48,9 @@ public class SeatController
             @PathVariable Long eventId) 
     {
         return ResponseEntity.ok(
-                seatService.getAvailableSeats(eventId)
+                seatService.getAvailableSeats(
+                        eventId
+                )
         );
     }
 
@@ -54,7 +59,9 @@ public class SeatController
             @PathVariable Long eventId) 
     {
         return ResponseEntity.ok(
-                seatService.getAvailableSeatCount(eventId)
+                seatService.getAvailableSeatCount(
+                        eventId
+                )
         );
     }
 
@@ -64,6 +71,7 @@ public class SeatController
             @Valid @RequestBody HoldSeatsRequest request) 
     {
         Long userId = getAuthenticatedUserId();
+
         return ResponseEntity.ok(
                 seatService.holdSeats(
                         eventId,
@@ -82,7 +90,20 @@ public class SeatController
                 eventId,
                 holdReference
         );
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                .build();
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<Void> confirmHeldSeats(
+            @PathVariable Long eventId,
+            @Valid @RequestBody ConfirmSeatsRequest request) 
+    {
+        seatService.confirmHeldSeats(
+                eventId,
+                request
+        );
+        return ResponseEntity.ok().build();
     }
 
     private Long getAuthenticatedUserId() 
@@ -93,7 +114,7 @@ public class SeatController
                         .getAuthentication();
 
         if (authentication == null|| !(authentication.getPrincipal()instanceof JwtUserPrincipal principal)) 
-                {
+        {
             throw new IllegalStateException(
                     "Authenticated user is required"
             );

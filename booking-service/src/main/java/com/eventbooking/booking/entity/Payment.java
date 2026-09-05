@@ -1,11 +1,9 @@
 package com.eventbooking.booking.entity;
 
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -27,33 +24,29 @@ import lombok.Setter;
 
 @Entity
 @Table(
-        name = "bookings",
+        name = "payments",
         indexes = {
                 @Index(
-                        name = "idx_booking_user_id",
+                        name = "idx_payment_booking_id",
+                        columnList = "booking_id"
+                ),
+                @Index(
+                        name = "idx_payment_user_id",
                         columnList = "user_id"
                 ),
                 @Index(
-                        name = "idx_booking_event_id",
-                        columnList = "event_id"
-                ),
-                @Index(
-                        name = "idx_booking_status",
+                        name = "idx_payment_status",
                         columnList = "status"
                 ),
                 @Index(
-                        name = "idx_booking_reference",
-                        columnList = "booking_reference"
-                ),
-                @Index(
-                        name = "idx_booking_expires_at",
-                        columnList = "expires_at"
+                        name = "idx_payment_reference",
+                        columnList = "payment_reference"
                 )
         },
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_booking_reference",
-                        columnNames = "booking_reference"
+                        name = "uk_payment_reference",
+                        columnNames = "payment_reference"
                 )
         }
 )
@@ -62,12 +55,17 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Booking 
+public class Payment 
 {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(
+            name = "booking_id",
+            nullable = false
+    )
+    private Long bookingId;
 
     @Column(
             name = "user_id",
@@ -76,44 +74,46 @@ public class Booking
     private Long userId;
 
     @Column(
-            name = "event_id",
-            nullable = false
-    )
-    private Long eventId;
-
-    @Column(
-            name = "booking_reference",
+            name = "payment_reference",
             nullable = false,
             unique = true,
             length = 50
     )
-    private String bookingReference;
+    private String paymentReference;
 
     @Column(
-            name = "seat_count",
-            nullable = false
-    )
-    private Integer seatCount;
-
-    @Column(
-            name = "total_amount",
+            name = "amount",
             nullable = false,
             precision = 12,
             scale = 2
     )
-    private BigDecimal totalAmount;
+    private BigDecimal amount;
+
+    @Column(
+            name = "payment_method",
+            nullable = false,
+            length = 30
+    )
+    private String paymentMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(
             nullable = false,
             length = 20
     )
-    private BookingStatus status;
+    private PaymentStatus status;
 
     @Column(
-            name = "expires_at"
+            name = "transaction_id",
+            length = 100
     )
-    private LocalDateTime expiresAt;
+    private String transactionId;
+
+    @Column(
+            name = "failure_reason",
+            length = 500
+    )
+    private String failureReason;
 
     @Column(
             nullable = false,
@@ -124,14 +124,6 @@ public class Booking
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(
-            mappedBy = "booking",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @Builder.Default
-    private List<BookingSeat> bookingSeats = new ArrayList<>();
-
     @PrePersist
     protected void onCreate() 
     {
@@ -139,10 +131,9 @@ public class Booking
 
         createdAt = now;
         updatedAt = now;
-
         if (status == null) 
         {
-            status = BookingStatus.PENDING;
+            status = PaymentStatus.INITIATED;
         }
     }
 
@@ -151,10 +142,4 @@ public class Booking
     {
         updatedAt = LocalDateTime.now();
     }
-
-    public void addBookingSeat(BookingSeat bookingSeat) 
-    {
-        bookingSeats.add(bookingSeat);
-        bookingSeat.setBooking(this);
-    }
-}
+} 

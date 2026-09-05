@@ -1,10 +1,10 @@
 package com.eventbooking.booking.dto;
 
-import com.eventbooking.booking.entity.BookingStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.eventbooking.booking.entity.BookingStatus;
 
 public record BookingResponse(
         Long id,
@@ -15,8 +15,9 @@ public record BookingResponse(
         BigDecimal totalAmount,
         BookingStatus status,
         List<BookingSeatResponse> seats,
+        LocalDateTime expiresAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) 
+)
 {
 }

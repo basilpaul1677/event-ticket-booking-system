@@ -30,31 +30,28 @@ public class SecurityConfig
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/actuator/health",
-                                "/actuator/info"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/api/v1/events/published",
-                                "/api/v1/events/search",
-                                "/api/v1/events/city/**",
-                                "/api/v1/events/category/**",
-                                "/api/v1/events/*/seats",
-                                "/api/v1/events/*/seats/available",
-                                "/api/v1/events/*/seats/available/count"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/api/v1/admin/**"
-                        ).hasRole("ADMIN")
-                        .requestMatchers(
-                                "/api/v1/events/*/seats/hold/**",
-                                "/api/v1/events/*/seats/hold"
-                        ).authenticated()
-                        .requestMatchers(
-                                "/api/v1/events"
-                        ).hasRole("EVENT_CENTER")
-                        .anyRequest().authenticated()
-                )
+                .requestMatchers(
+                "/actuator/health",
+                "/actuator/info"
+                ).permitAll()
+                .requestMatchers(
+                "/api/v1/events/published",
+                "/api/v1/events/search",
+                "/api/v1/events/city/**",
+                "/api/v1/events/category/**",
+                "/api/v1/events/*/seats",
+                "/api/v1/events/*/seats/available",
+                "/api/v1/events/*/seats/available/count"
+                ).permitAll()
+                .requestMatchers(
+                "/api/v1/events/*/seats/hold/**",
+                "/api/v1/events/*/seats/hold",
+                "/api/v1/events/*/seats/confirm"
+                ).hasRole("USER")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/events").hasRole("EVENT_CENTER")
+                .anyRequest().authenticated()
+        )       
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

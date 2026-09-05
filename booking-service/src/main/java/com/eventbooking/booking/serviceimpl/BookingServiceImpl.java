@@ -27,7 +27,8 @@ import com.eventbooking.booking.service.BookingService;
 
 @Service
 @Transactional
-public class BookingServiceImpl implements BookingService {
+public class BookingServiceImpl
+        implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final EventServiceClient eventServiceClient;
@@ -44,7 +45,8 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse createBooking(
             CreateBookingRequest request) {
 
-        Long userId = getAuthenticatedUserId();
+        Long userId =
+                getAuthenticatedUserId();
 
         String authorizationHeader =
                 getAuthorizationHeader();
@@ -94,34 +96,62 @@ public class BookingServiceImpl implements BookingService {
                             holdResponse.seats()
                     );
 
-            Booking booking = Booking.builder()
-                    .userId(userId)
-                    .eventId(request.eventId())
-                    .bookingReference(bookingReference)
-                    .seatCount(holdResponse.seats().size())
-                    .totalAmount(totalAmount)
-                    .status(BookingStatus.PENDING)
-                    .build();
+            Booking booking =
+                    Booking.builder()
+                            .userId(userId)
+                            .eventId(request.eventId())
+                            .bookingReference(
+                                    bookingReference
+                            )
+                            .seatCount(
+                                    holdResponse.seats().size()
+                            )
+                            .totalAmount(
+                                    totalAmount
+                            )
+                            .status(
+                                    BookingStatus.PENDING
+                            )
+                            .expiresAt(
+                                    holdResponse.heldUntil()
+                            )
+                            .build();
 
             for (HeldSeatResponse heldSeat :
                     holdResponse.seats()) {
 
                 BookingSeat bookingSeat =
                         BookingSeat.builder()
-                                .eventId(request.eventId())
-                                .seatId(heldSeat.seatId())
-                                .seatNumber(heldSeat.seatNumber())
-                                .seatPrice(heldSeat.seatPrice())
-                                .status(BookingSeatStatus.HELD)
+                                .eventId(
+                                        request.eventId()
+                                )
+                                .seatId(
+                                        heldSeat.seatId()
+                                )
+                                .seatNumber(
+                                        heldSeat.seatNumber()
+                                )
+                                .seatPrice(
+                                        heldSeat.seatPrice()
+                                )
+                                .status(
+                                        BookingSeatStatus.HELD
+                                )
                                 .build();
 
-                booking.addBookingSeat(bookingSeat);
+                booking.addBookingSeat(
+                        bookingSeat
+                );
             }
 
             Booking savedBooking =
-                    bookingRepository.save(booking);
+                    bookingRepository.save(
+                            booking
+                    );
 
-            return mapToResponse(savedBooking);
+            return mapToResponse(
+                    savedBooking
+            );
 
         } catch (Exception ex) {
 
@@ -135,7 +165,9 @@ public class BookingServiceImpl implements BookingService {
 
             } catch (Exception releaseException) {
 
-                ex.addSuppressed(releaseException);
+                ex.addSuppressed(
+                        releaseException
+                );
             }
 
             throw new IllegalStateException(
@@ -148,7 +180,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public BookingResponse getBookingById(Long id) {
+    public BookingResponse getBookingById(
+            Long id) {
 
         Booking booking =
                 bookingRepository.findById(id)
@@ -159,9 +192,13 @@ public class BookingServiceImpl implements BookingService {
                                 )
                         );
 
-        validateBookingAccess(booking);
+        validateBookingAccess(
+                booking
+        );
 
-        return mapToResponse(booking);
+        return mapToResponse(
+                booking
+        );
     }
 
     @Override
@@ -181,9 +218,13 @@ public class BookingServiceImpl implements BookingService {
                                 )
                         );
 
-        validateBookingAccess(booking);
+        validateBookingAccess(
+                booking
+        );
 
-        return mapToResponse(booking);
+        return mapToResponse(
+                booking
+        );
     }
 
     @Override
@@ -194,7 +235,9 @@ public class BookingServiceImpl implements BookingService {
                 getAuthenticatedUserId();
 
         return bookingRepository
-                .findByUserIdOrderByCreatedAtDesc(userId)
+                .findByUserIdOrderByCreatedAtDesc(
+                        userId
+                )
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -206,7 +249,9 @@ public class BookingServiceImpl implements BookingService {
             Long eventId) {
 
         return bookingRepository
-                .findByEventIdOrderByCreatedAtDesc(eventId)
+                .findByEventIdOrderByCreatedAtDesc(
+                        eventId
+                )
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -218,17 +263,20 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal total =
                 BigDecimal.ZERO;
 
-        for (HeldSeatResponse seat : seats) {
+        for (HeldSeatResponse seat :
+                seats) {
 
             if (seat.seatPrice() == null) {
+
                 throw new IllegalStateException(
                         "Seat price cannot be null"
                 );
             }
 
-            total = total.add(
-                    seat.seatPrice()
-            );
+            total =
+                    total.add(
+                            seat.seatPrice()
+                    );
         }
 
         return total;
@@ -281,7 +329,8 @@ public class BookingServiceImpl implements BookingService {
                 authentication.getDetails();
 
         if (details instanceof String authorizationHeader
-                && authorizationHeader.startsWith("Bearer ")) {
+                && authorizationHeader.startsWith(
+                "Bearer ")) {
 
             return authorizationHeader;
         }
@@ -312,7 +361,9 @@ public class BookingServiceImpl implements BookingService {
         List<BookingSeatResponse> seats =
                 booking.getBookingSeats()
                         .stream()
-                        .map(this::mapSeatToResponse)
+                        .map(
+                                this::mapSeatToResponse
+                        )
                         .toList();
 
         return new BookingResponse(
@@ -324,6 +375,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.getTotalAmount(),
                 booking.getStatus(),
                 seats,
+                booking.getExpiresAt(),
                 booking.getCreatedAt(),
                 booking.getUpdatedAt()
         );
@@ -331,6 +383,7 @@ public class BookingServiceImpl implements BookingService {
 
     private BookingSeatResponse mapSeatToResponse(
             BookingSeat bookingSeat) {
+
         return new BookingSeatResponse(
                 bookingSeat.getId(),
                 bookingSeat.getSeatId(),

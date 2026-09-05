@@ -9,6 +9,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eventbooking.event.dto.ConfirmSeatsRequest;
 import com.eventbooking.event.dto.HeldSeatResponse;
 import com.eventbooking.event.dto.HoldSeatsRequest;
 import com.eventbooking.event.dto.HoldSeatsResponse;
@@ -40,7 +41,8 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SeatResponse> getSeatsByEvent(Long eventId) {
+    public List<SeatResponse> getSeatsByEvent(
+            Long eventId) {
 
         validateEventExists(eventId);
 
@@ -53,7 +55,8 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SeatResponse> getAvailableSeats(Long eventId) {
+    public List<SeatResponse> getAvailableSeats(
+            Long eventId) {
 
         validateEventExists(eventId);
 
@@ -69,7 +72,8 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     @Transactional(readOnly = true)
-    public long getAvailableSeatCount(Long eventId) {
+    public long getAvailableSeatCount(
+            Long eventId) {
 
         validateEventExists(eventId);
 
@@ -98,7 +102,8 @@ public class SeatServiceImpl implements SeatService {
         Set<Long> uniqueSeatIds =
                 new HashSet<>(request.seatIds());
 
-        if (uniqueSeatIds.size() != request.seatIds().size()) {
+        if (uniqueSeatIds.size()
+                != request.seatIds().size()) {
 
             throw new IllegalArgumentException(
                     "Duplicate seat IDs are not allowed"
@@ -118,29 +123,45 @@ public class SeatServiceImpl implements SeatService {
             );
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now =
+                LocalDateTime.now();
 
-        releaseExpiredHolds(seats, now);
+        releaseExpiredHolds(
+                seats,
+                now
+        );
 
         for (Seat seat : seats) {
 
-            if (seat.getStatus() != SeatStatus.AVAILABLE) {
+            if (seat.getStatus()
+                    != SeatStatus.AVAILABLE) {
 
                 throw new IllegalStateException(
-                        "Seat " + seat.getSeatNumber()
+                        "Seat "
+                                + seat.getSeatNumber()
                                 + " is not available"
                 );
             }
         }
 
         LocalDateTime heldUntil =
-                now.plusMinutes(HOLD_DURATION_MINUTES);
+                now.plusMinutes(
+                        HOLD_DURATION_MINUTES
+                );
 
         for (Seat seat : seats) {
 
-            seat.setStatus(SeatStatus.HELD);
-            seat.setHoldReference(request.holdReference());
-            seat.setHeldUntil(heldUntil);
+            seat.setStatus(
+                    SeatStatus.HELD
+            );
+
+            seat.setHoldReference(
+                    request.holdReference()
+            );
+
+            seat.setHeldUntil(
+                    heldUntil
+            );
         }
 
         seatRepository.saveAll(seats);
@@ -181,7 +202,77 @@ public class SeatServiceImpl implements SeatService {
 
         for (Seat seat : seats) {
 
-            seat.setStatus(SeatStatus.AVAILABLE);
+            seat.setStatus(
+                    SeatStatus.AVAILABLE
+            );
+
+            seat.setHoldReference(null);
+            seat.setHeldUntil(null);
+        }
+
+        seatRepository.saveAll(seats);
+    }
+
+    @Override
+    public void confirmHeldSeats(
+            Long eventId,
+            ConfirmSeatsRequest request) {
+
+        validateEventExists(eventId);
+
+        if (request.holdReference() == null
+                || request.holdReference().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Hold reference is required"
+            );
+        }
+
+        List<Seat> seats =
+                seatRepository.findHeldSeatsForUpdate(
+                        eventId,
+                        request.holdReference()
+                );
+
+        if (seats.isEmpty()) {
+
+            throw new IllegalStateException(
+                    "No held seats found for hold reference: "
+                            + request.holdReference()
+            );
+        }
+
+        LocalDateTime now =
+                LocalDateTime.now();
+
+        for (Seat seat : seats) {
+
+            if (seat.getHeldUntil() == null
+                    || !seat.getHeldUntil()
+                    .isAfter(now)) {
+
+                throw new IllegalStateException(
+                        "Seat hold has expired"
+                );
+            }
+
+            if (seat.getStatus()
+                    != SeatStatus.HELD) {
+
+                throw new IllegalStateException(
+                        "Seat "
+                                + seat.getSeatNumber()
+                                + " is not currently held"
+                );
+            }
+        }
+
+        for (Seat seat : seats) {
+
+            seat.setStatus(
+                    SeatStatus.BOOKED
+            );
+
             seat.setHoldReference(null);
             seat.setHeldUntil(null);
         }
@@ -195,29 +286,35 @@ public class SeatServiceImpl implements SeatService {
 
         for (Seat seat : seats) {
 
-            if (seat.getStatus() == SeatStatus.HELD
+            if (seat.getStatus()
+                    == SeatStatus.HELD
                     && seat.getHeldUntil() != null
-                    && !seat.getHeldUntil().isAfter(now)) {
+                    && !seat.getHeldUntil()
+                    .isAfter(now)) {
 
-                seat.setStatus(SeatStatus.AVAILABLE);
+                seat.setStatus(
+                        SeatStatus.AVAILABLE
+                );
+
                 seat.setHoldReference(null);
                 seat.setHeldUntil(null);
             }
         }
     }
 
-    private void validateEventExists(Long eventId) {
-
+    private void validateEventExists(Long eventId) 
+    {
         eventRepository.findById(eventId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Event not found with id: " + eventId
+                                "Event not found with id: "
+                                        + eventId
                         )
                 );
     }
 
-    private SeatResponse mapToResponse(Seat seat) {
-
+    private SeatResponse mapToResponse(Seat seat) 
+    {
         return new SeatResponse(
                 seat.getId(),
                 seat.getEventId(),
@@ -228,12 +325,9 @@ public class SeatServiceImpl implements SeatService {
         );
     }
 
-    private HeldSeatResponse mapToHeldSeatResponse(
-            Seat seat) {
-
-        Event event = eventRepository.findById(
-                        seat.getEventId()
-                )
+    private HeldSeatResponse mapToHeldSeatResponse(Seat seat) 
+    {
+        Event event = eventRepository.findById(seat.getEventId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Event not found with id: "
@@ -241,9 +335,7 @@ public class SeatServiceImpl implements SeatService {
                         )
                 );
 
-        BigDecimal ticketPrice =
-                event.getTicketPrice();
-
+        BigDecimal ticketPrice = event.getTicketPrice();
         return new HeldSeatResponse(
                 seat.getId(),
                 seat.getSeatNumber(),

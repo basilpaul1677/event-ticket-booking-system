@@ -1,5 +1,6 @@
 package com.eventbooking.booking.config;
 
+import com.eventbooking.booking.dto.ConfirmSeatsRequest;
 import com.eventbooking.booking.dto.HoldSeatsRequest;
 import com.eventbooking.booking.dto.HoldSeatsResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +15,8 @@ public class EventServiceClient {
 
     public EventServiceClient(
             RestClient.Builder builder,
-            @Value("${event-service.url}") String eventServiceUrl) {
+            @Value("${event-service.url}")
+            String eventServiceUrl) {
 
         this.restClient = builder
                 .baseUrl(eventServiceUrl)
@@ -44,8 +46,8 @@ public class EventServiceClient {
     public void releaseSeats(
             Long eventId,
             String holdReference,
-            String authorizationHeader) 
-    {
+            String authorizationHeader) {
+
         restClient
                 .delete()
                 .uri(
@@ -57,6 +59,28 @@ public class EventServiceClient {
                         HttpHeaders.AUTHORIZATION,
                         authorizationHeader
                 )
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public void confirmSeats(Long eventId,String holdReference,String authorizationHeader) 
+    {
+        ConfirmSeatsRequest request =
+                new ConfirmSeatsRequest(
+                        holdReference
+                );
+
+        restClient
+                .post()
+                .uri(
+                        "/api/v1/events/{eventId}/seats/confirm",
+                        eventId
+                )
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        authorizationHeader
+                )
+                .body(request)
                 .retrieve()
                 .toBodilessEntity();
     }
