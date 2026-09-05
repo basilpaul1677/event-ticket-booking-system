@@ -25,3 +25,10 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_SECRET:change-this-development-secret-key-to-a-long-random-value-123456789}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+event-service:
+  url: ${EVENT_SERVICE_URL:http://localhost:8082}

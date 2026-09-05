@@ -1,4 +1,4 @@
-package com.eventbooking.event.security;
+package com.eventbooking.booking.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig 
 {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter) 
     {
@@ -35,24 +36,8 @@ public class SecurityConfig
                                 "/actuator/info"
                         ).permitAll()
                         .requestMatchers(
-                                "/api/v1/events/published",
-                                "/api/v1/events/search",
-                                "/api/v1/events/city/**",
-                                "/api/v1/events/category/**",
-                                "/api/v1/events/*/seats",
-                                "/api/v1/events/*/seats/available",
-                                "/api/v1/events/*/seats/available/count"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/api/v1/admin/**"
-                        ).hasRole("ADMIN")
-                        .requestMatchers(
-                                "/api/v1/events/*/seats/hold/**",
-                                "/api/v1/events/*/seats/hold"
+                                "/api/v1/bookings/**"
                         ).authenticated()
-                        .requestMatchers(
-                                "/api/v1/events"
-                        ).hasRole("EVENT_CENTER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

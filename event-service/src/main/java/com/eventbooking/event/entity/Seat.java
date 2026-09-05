@@ -38,6 +38,14 @@ import lombok.Setter;
                 @Index(
                         name = "idx_seat_event_status",
                         columnList = "event_id, status"
+                ),
+                @Index(
+                        name = "idx_seat_hold_reference",
+                        columnList = "hold_reference"
+                ),
+                @Index(
+                        name = "idx_seat_held_until",
+                        columnList = "held_until"
                 )
         }
 )
@@ -46,44 +54,21 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Seat 
-{
+public class Seat {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * ID of the event this seat belongs to.
-     *
-     * No @ManyToOne relationship is used because
-     * we want the seat model to remain simple and
-     * service-owned.
-     */
     @Column(name = "event_id", nullable = false)
     private Long eventId;
 
-    /**
-     * Human-readable seat label.
-     *
-     * Examples:
-     * A1, A2, A3
-     * B1, B2, B3
-     */
     @Column(name = "seat_number", nullable = false, length = 20)
     private String seatNumber;
 
-    /**
-     * Row identifier.
-     *
-     * Examples:
-     * A, B, C
-     */
     @Column(name = "seat_row", nullable = false, length = 10)
     private String seatRow;
 
-    /**
-     * Numeric position inside the row.
-     */
     @Column(name = "seat_position", nullable = false)
     private Integer seatPosition;
 
@@ -91,44 +76,41 @@ public class Seat
     @Column(nullable = false, length = 20)
     private SeatStatus status;
 
+    @Column(name = "hold_reference", length = 50)
+    private String holdReference;
+
+    @Column(name = "held_until")
+    private LocalDateTime heldUntil;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    /**
-     * Optimistic locking.
-     *
-     * This becomes important later when multiple
-     * users attempt to reserve seats concurrently.
-     */
     @Version
     @Column(nullable = false)
     private Long version;
 
     @PrePersist
-    protected void onCreate() 
-    {
+    protected void onCreate() {
+
         LocalDateTime now = LocalDateTime.now();
 
         createdAt = now;
         updatedAt = now;
 
-        if (status == null) 
-        {
+        if (status == null) {
             status = SeatStatus.AVAILABLE;
         }
 
-        if (version == null) 
-        {
+        if (version == null) {
             version = 0L;
         }
     }
 
     @PreUpdate
-    protected void onUpdate() 
-    {
+    protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 }
